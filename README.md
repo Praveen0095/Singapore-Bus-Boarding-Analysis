@@ -1,133 +1,91 @@
-# Crowd Aware Bus Boarding Decisions: A Rule Based AB-Analysis Using LTA Data
+# Singapore Bus Boarding Decision Analytics
 
-## Overview
+## Project Overview
 
-This project analyzes how additional real-time information influences commuter boarding decisions in a public transport context. Using Singapore's LTA DataMall Bus Arrival API, the analysis evaluates whether displaying passenger crowd density alongside arrival time can reduce poor boarding decisions without reducing overall boarding likelihood. The focus is on decision quality, not prediction accuracy.
+This project evaluates whether incorporating real-time crowd density information improves bus boarding decisions for commuters in Singapore. Using live data from the **Land Transport Authority (LTA) DataMall API**, the project simulates and tests two competing boarding policies across 1,097 peak-hour bus arrivals.
 
-## Problem Statement
+The analysis is structured in two phases — a counterfactual simulation (Phase 1) and a randomised A/B test (Phase 2) — culminating in a utility-based decision framework that models trade-offs between wait time and crowd discomfort.
 
-Commuters typically decide whether to board a bus based on estimated arrival time (ETA) alone. However, boarding a highly crowded bus can negatively impact:
+---
 
-1. Travel comfort
-2. Boarding time
-3. Overall user experience
+## Business Problem
 
-This project evaluates whether adding **crowd density** information leads to better boarding decisions.
+Singapore's public transport system is world-class, but commuter discomfort during peak hours remains a persistent pain point. When should a commuter board a crowded bus versus wait for the next one?
 
-## Experiment Design (Conceptual A/B Framework)
+This project asks: **does giving commuters crowd density information lead to better boarding decisions, and at what cost?**
 
-Since direct user interaction data is unavailable, a rule-based counterfactual analysis is used.
+---
 
-### Group A — Baseline (ETA Only)
+## Tech Stack
+
+| Tool | Purpose |
+|---|---|
+| Python (Pandas, NumPy, SciPy) | Data processing, analysis, modelling |
+| PostgreSQL | Data storage and SQL-based querying |
+| LTA DataMall API | Real-time bus arrival and crowd data |
+| Power BI | Dashboard and visualisation |
+
+---
+
+## Project Structure
+
 ```
-  Information shown: Bus number + ETA
-```
-**Decision rule:** Board if ETA ≤ 10 minutes
-
-### Group B — Enhanced Information
-```
-  Information shown: Bus number + ETA + Crowd Density
-```
-**Decision rule:** Board if ETA ≤ 10 minutes AND crowd density is not High
-
-*This design isolates the impact of additional information, not user behavior randomness.*
-
-## Data Source
-
-**Public API:** Singapore LTA DataMall – Bus Arrival API
-
-### Data Used
-
-- Estimated Time of Arrival (minutes)
-- Passenger crowd density (Low / Medium / High)
-
-*No scraping, private, or personal data is used.*
-
-## Key Metrics
-
-1. **Boarding Rate** — Percentage of cases where the commuter decides to board
-2. **Bad Boarding Rate** — Percentage of boarding decisions where the bus is highly crowded
-
-*This metric directly measures decision quality.*
-
-## Decision Logic
-
-### Boolean Representation
-
-**Group A:**
-```python
-    Board_A = 1 if ETA ≤ 10
+├── Phase 1 — Counterfactual Simulation
+│   ├── Rule-based group comparison
+│   ├── Decision outcome matrix
+│   ├── Threshold sensitivity analysis (7/10/12 min ETA)
+│   └── Wait time penalty quantification
+│
+├── Phase 2 — Randomised A/B Test
+│   ├── 50/50 random group assignment (n=1,097)
+│   ├── Utility cost function (α = β = 0.2)
+│   ├── Sigmoid boarding probability model
+│   ├── Independent samples t-test
+│   └── Power analysis
+│
+└── Dashboard (Power BI)
+    ├── Phase 1 — Counterfactual page
+    └── Phase 2 — A/B Testing page
 ```
 
-**Group B:**
-```python
-    Board_B = 1 if (ETA ≤ 10) AND (Crowd Density ≠ High)
-```
+---
 
-## Results Summary
+## Key Findings
 
-### 1. Boarding Rate
+### Phase 1
+- Crowd-aware policy reduced bad boarding decisions by **100%** (9.8% → 0%)
+- Overall boarding rate cost: **−5 percentage points** (54% → 49%)
+- Result stable across 7, 10, and 12-minute ETA thresholds
+- 10-minute ETA confirmed as optimal operational cutoff
 
-- **Group A:** Stable
-- **Group B:** Comparable to Group A
+### Phase 2
+- Group A (ETA only) mean boarding probability: **0.798**
+- Group B (Crowd-aware) mean boarding probability: **0.729**
+- Difference: **7.96 percentage points**
+- T-statistic: **6.98** | P-value: **< 0.0001**
+- Power analysis: minimum 241 rows required — study collected **4.5× the threshold**
 
-### 2. Bad Boarding Rate
+---
 
-- **Group A:** Present (boarding crowded buses)
-- **Group B:** Reduced by 100%
+## Analytical Conclusion
 
-*This shows that adding crowd density information eliminates poor boarding decisions without reducing overall boarding likelihood.*
+> A single boarding rule is suboptimal for all commuters. The ETA-only policy minimises wait time but exposes commuters to avoidable crowding. The crowd-aware policy improves comfort at a modest boarding rate cost. The optimal policy depends on individual commuter preference — modelled through a weighted utility function.
 
-### 3. Sensitivity Analysis
+Singapore's high bus frequency means High crowd density is operationally rare. The policy benefit is most pronounced during peak hours and service disruptions — precisely when commuters need decision support most.
 
-To ensure robustness, the ETA threshold was varied:
+---
 
-- 7 minutes
-- 10 minutes
-- 12 minutes
+## Limitations and Next Steps
 
-### Observation
+- Observed boarding behavior (EZ-Link tap-in data) unavailable from public API — boarding decisions are simulated using utility-based rules
+- High density scenarios rare due to Singapore's transit efficiency
+- Future work: apply framework to granular LTA boarding data if access were available; extend to Difference-in-Differences design using stops with/without crowd display boards
 
-- Boarding trends remain consistent
-- Bad boarding remains near zero in Group B
+---
 
-*The findings are not overly sensitive to the ETA threshold.*
+## Data Collection
 
-## Business Impact
-
-1. Improves commuter comfort and trust
-2. Reduces overcrowding-related dissatisfaction
-3. Supports better boarding distribution without operational changes
-4. Demonstrates how information design can improve decision outcomes
-
-## Why This Matters
-
-This project demonstrates how simple, interpretable rules can:
-
-- Improve user decision-making
-- Deliver measurable impact
-- Avoid unnecessary model complexity
-
-*It reflects a product analytics mindset, focusing on clarity, trade-offs, and actionable insights.*
-
-## Tools & Technologies
-
-- Python (Pandas)
-- Rule-based logic
-- Public transport open data
-- Analytical decision modeling
-- PostgreSQL (DataBase)
-
-## Limitations & Future Work
-
-Real user interaction data would enable true randomized A/B testing.
-
-### Future work could incorporate:
-
-- User segmentation (rush vs non-rush)
-- Probabilistic boarding models
-- Live feedback loops
-
-## Conclusion
-
-Providing crowd density information alongside ETA significantly improves commuter boarding decisions. This project highlights how small UI changes, backed by data, can deliver meaningful real-world impact.
+- Source: LTA DataMall Bus Arrival v3 API
+- Collection period: Peak hours (7:30–9:00am SGT  on weekdays)
+- Bus stops: Multiple high-ridership Singapore stops
+- Total peak-hour records: 1,097 after ETA filtering (0–30 minutes)
