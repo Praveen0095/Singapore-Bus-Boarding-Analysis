@@ -98,10 +98,10 @@ t_stat, p_value = stats.ttest_ind(group_A_probs, group_B_probs)
 
 | Metric | Value |
 |---|---|
-| Group A mean boarding probability | 0.9758 |
-| Group B mean boarding probability | 0.8962 |
-| Difference | 7.96 percentage points |
-| T-statistic | 16.28 |
+| Group A mean boarding probability | 0.798|
+| Group B mean boarding probability | 0.729 |
+| Difference | 7.9 percentage points |
+| T-statistic | 6.968 |
 | P-value | < 0.0001 |
 | Statistically significant | Yes (p < 0.05) |
 
